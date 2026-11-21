@@ -1,0 +1,13 @@
+# transcribe_03.py 的 Python 依赖（Python 3.11.5 / Windows 下实测）
+# 安装：.\.venv\Scripts\pip.exe install -r requirements.txt
+
+faster-whisper==1.2.1
+imageio-ffmpeg==0.8.1
+
+# 上述两个包带入的关键传递依赖，实测版本，仅作记录、不锁版本；
+# 换平台或换 Python 版本时由 pip 自行选择适配的版本
+#   ctranslate2==4.9.0
+#   onnxruntime==1.32.0
+#   av==18.1.0
+#   tokenizers==0.23.3
+#   numpy==2.4.6

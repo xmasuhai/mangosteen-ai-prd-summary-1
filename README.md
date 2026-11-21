@@ -22,6 +22,7 @@ Work_Schedule/
 │   ├─ transcript.md/.txt/.srt 逐字稿（带时间戳 / 纯文本 / 字幕）
 │   └─ audio_16k.wav           中间音频（已忽略）
 ├─ .gitignore
+├─ requirements.txt              Python 依赖（faster-whisper、imageio-ffmpeg）
 ├─ package.json / package-lock.json
 ├─ .venv/  .models/  node_modules/   ← 均为本地环境，已忽略
 ```
@@ -42,11 +43,37 @@ graph LR
 
 `transcribe_03.py` 的要点：
 
-- 抽取音频：`imageio_ffmpeg.get_ffmpeg_exe()` 调 ffmpeg，参数 `-vn -ac 1 -ar 16000`，已存在则跳过；
+- 抽取音频：`imageio_ffmpeg.get_ffmpeg_exe()` 调 ffmpeg，参数 `-vn -ac 1 -ar 16000`，已存在则跳过（`--force` 可强制重抽）；
 - 识别：`faster_whisper.WhisperModel("small", device="cpu", compute_type="int8", download_root=".models")`，`language="zh"`、`beam_size=5`；
 - 输出：`transcript.md`（带 `[hh:mm:ss,SSS]` 时间戳）、`transcript.txt`（秒级时间戳）。
 
-> 注意：脚本里 `BASE`、`VIDEO` 是写死的绝对路径（`F:\...`），换机器或换视频需要手改。`.srt` 不是这个脚本产出的，生成它的脚本未入库。
+输入输出全部走命令行参数，不再写死路径：
+
+```powershell
+# 只看参数解析结果，不跑模型
+.\.venv\Scripts\python.exe transcribe_03.py --video "F:\...\3. 使用用例图描述功能.mp4" --out notes_03 --dry-run
+
+# 实际转写
+.\.venv\Scripts\python.exe transcribe_03.py --video "F:\...\3. 使用用例图描述功能.mp4" --out notes_03
+
+# 换模型/换语言/开 VAD
+.\.venv\Scripts\python.exe transcribe_03.py --video in.mp4 --out notes_05 --model medium --language auto --vad-filter
+```
+
+| 参数 | 默认值 | 说明 |
+| --- | --- | --- |
+| `--video` | 必填 | 输入视频或音频路径 |
+| `--out` | `notes_03` | 输出目录，不存在自动创建 |
+| `--model` | `small` | tiny / base / small / medium / large-v3 或本地模型路径 |
+| `--models-dir` | `<项目>/.models` | 模型缓存目录，按脚本所在目录解析 |
+| `--language` | `zh` | 传 `auto` 自动检测 |
+| `--beam-size` | `5` | 正整数校验 |
+| `--device` / `--compute-type` | `cpu` / `int8` | 有 GPU 可传 `cuda` + `float16` |
+| `--vad-filter` | 关闭 | 开启静音过滤 |
+| `--voice` / `--title` | `audio_16k.wav` / 视频文件名 | 中间音频名、md 标题 |
+| `--force` / `--dry-run` | 关闭 | 强制重抽音频、仅打印参数 |
+
+> 注意：`.srt` 不是这个脚本产出的，生成它的脚本未入库。
 
 ## 复现环境
 
@@ -54,11 +81,11 @@ Python 端（3.11.5，`.venv`）：
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\pip.exe install faster-whisper==1.2.1 imageio-ffmpeg==0.8.1
-.\.venv\Scripts\python.exe transcribe_03.py
+.\.venv\Scripts\pip.exe install -r requirements.txt
+.\.venv\Scripts\python.exe transcribe_03.py --video "F:\...\3. 使用用例图描述功能.mp4" --out notes_03
 ```
 
-当前实测版本：faster-whisper 1.2.1、ctranslate2 4.9.0、imageio-ffmpeg 0.8.1、onnxruntime 1.32.0、av 18.1.0、tokenizers 0.23.3、numpy 2.4.6。
+`requirements.txt` 锁死两个直接依赖（faster-whisper 1.2.1、imageio-ffmpeg 0.8.1）。当前实测的传递依赖版本：ctranslate2 4.9.0、onnxruntime 1.32.0、av 18.1.0、tokenizers 0.23.3、numpy 2.4.6。
 
 Node 端（仅用于 mermaid 图表渲染/校验，devDependencies）：
 
@@ -85,7 +112,6 @@ npm ls --depth=0
 
 ## 已知缺口（后续可补）
 
-1. 缺 `requirements.txt` 或 `pyproject.toml`，Python 依赖目前只散落在 README 里。
-2. 四讲视频只有一讲留下了转写脚本，其余三讲的 `.srt` 与笔记生成链路无代码可复现。
-3. 脚本硬编码绝对路径，建议改成 `argparse` 接收输入视频与输出目录。
-4. `package.json` 只声明了 mermaid/jsdom，仓库里没有对应的渲染脚本，出图流程仍是手工的。
+1. 四讲视频只有一讲留下了转写脚本，其余三讲的 `.srt` 与笔记生成链路无代码可复现。
+2. `package.json` 只声明了 mermaid/jsdom，仓库里没有对应的渲染脚本，出图流程仍是手工的。
+3. 仓库未加 `.gitattributes`，Windows 工作区是 CRLF、仓库内是 LF，跨平台协作时可能看到整文件换行差异。
