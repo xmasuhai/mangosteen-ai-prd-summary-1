@@ -1,0 +1,57 @@
+# ============================================================
+# Work_Schedule 仓库忽略规则
+# 本目录内容 = 课程视频的转写稿、整理笔记（.md/.txt/.srt）+ 一个
+# faster-whisper 转写脚本。以下均为「可重新生成的本地环境或中间产物」。
+# ============================================================
+
+# ---------- Python 虚拟环境（约 398 MB，由 .venv\pyvenv.cfg 记录，可重建）----------
+.venv/
+venv/
+ENV/
+
+# ---------- 模型缓存（约 464 MB，faster-whisper 首次运行自动下载）----------
+.models/
+*.pt
+*.bin
+
+# ---------- 前端 / Node 依赖（约 68 MB，仅用于 mermaid 出图）----------
+node_modules/
+
+# ---------- 转写中间产物：从视频抽取的 16k 单声道音频（约 46 MB，脚本可重新抽取）----------
+*.wav
+audio_*.mp3
+audio_*.m4a
+
+# ---------- Python 编译缓存 ----------
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- 日志与临时文件 ----------
+*.log
+logs/
+*.tmp
+*.temp
+*.bak
+*~
+
+# ---------- 编辑器与 IDE 个人配置 ----------
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ---------- 操作系统垃圾文件（Windows / macOS）----------
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.DS_Store
+._*
+
+# ---------- 环境变量与密钥（本项目暂未使用，预留）----------
+.env
+.env.*
+!.env.example
